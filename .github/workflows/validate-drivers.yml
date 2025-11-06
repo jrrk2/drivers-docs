@@ -5,10 +5,8 @@ on:
     branches:
       - main
     paths:
-      - 'src/content/docs/drivers/**'
-      - 'public/images/drivers/**'
-      - 'public/images/manufacturers/**'
-      - 'public/images/categories/**'
+      - 'src/content/docs/**'
+      - 'public/images/**'
 
 jobs:
   validate-files:
@@ -62,4 +60,35 @@ jobs:
           find public/images/categories -type f ! -name "*.webp" -print0 | while IFS= read -r -d $'\0' file; do
             echo "::error file=$file::Category icon '$file' must be in .webp format."
             exit 1
+          done
+
+      - name: Validate manufacturer and category images exist
+        run: |
+          find src/content/docs/drivers -name "*.yaml" | while read -r yaml_file; do
+            manufacturer=$(grep "Manufacturer:" "$yaml_file" | awk -F': ' '{print $2}' | tr -d '\r')
+            category=$(grep "Family:" "$yaml_file" | awk -F': ' '{print $2}' | tr -d '\r')
+
+            if [ -n "$manufacturer" ]; then
+              manufacturer_slug=$(echo "$manufacturer" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--/-/g' | sed 's/^-//' | sed 's/-$//')
+              manufacturer_image="public/images/manufacturers/${manufacturer_slug}.webp"
+              if [ ! -f "$manufacturer_image" ]; then
+                echo "::error file=$yaml_file::Manufacturer image for '$manufacturer' not found at '$manufacturer_image'."
+                exit 1
+              fi
+            else
+              echo "::error file=$yaml_file::Manufacturer name not found in '$yaml_file'."
+              exit 1
+            fi
+
+            if [ -n "$category" ]; then
+              category_slug=$(echo "$category" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--/-/g' | sed 's/^-//' | sed 's/-$//')
+              category_image="public/images/categories/${category_slug}.webp"
+              if [ ! -f "$category_image" ]; then
+                echo "::error file=$yaml_file::Category image for '$category' not found at '$category_image'."
+                exit 1
+              fi
+            else
+              echo "::error file=$yaml_file::Category name not found in '$yaml_file'."
+              exit 1
+            fi
           done
