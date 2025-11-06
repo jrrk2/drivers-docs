@@ -1,6 +1,6 @@
 ---
-title: eqmod
-category: mounts
+title: EQMod
+category: Mounts
 description: INDI AZ-GTi Driver based on EQMod driver and is released as a 3rd party driver and requires INDI Library >= v1.7.5.
 thumbnail: /images/drivers/mounts/eqmod/eqmod.webp
 ---

@@ -9,16 +9,17 @@ Each driver entry consists of two files: a Markdown (`.md`) file for the main co
 ### File Structure
 
 All driver documentation should reside within `src/content/docs/drivers/`.
+All the file names should be smallcase.
 Organize drivers by category:
 
 ```
 src/content/docs/drivers/
-├── Mounts/
-│   ├── EQMod.md
-│   └── EQMod.yaml
-├── Cameras/
-│   ├── ZWO.md
-│   └── ZWO.yaml
+├── mounts/
+│   ├── eqmod.md
+│   └── eqmod.yaml
+├── cameras/
+│   ├── zwo.md
+│   └── zwo.yaml
 └── ...
 ```
 
@@ -53,7 +54,7 @@ Here's how to use the EQMod driver with your mount...
 ```
 
 *   **`title`**: The name of the driver.
-*   **`category`**: The category this driver belongs to (e.g., `Mounts`, `Cameras`). This should match the directory name.
+*   **`category`**: The category this driver belongs to (e.g., `mounts`, `cameras`). This should match the directory name.
 *   **`thumbnail`**: (Optional) The path to the driver's thumbnail image. If not provided, a default path will be used.
 
 ### YAML (`.yaml`) File Example
@@ -65,6 +66,7 @@ manufacturer: Sky Watcher
 ```
 
 *   **`manufacturer`**: The name of the manufacturer for this driver. This will be used to group drivers on manufacturer-specific pages.
+*   The **`manufacturer`** name should has a logo at `/public/images/manufacturers/`
 
 ## 2. Image Guidelines
 
@@ -73,7 +75,7 @@ To maintain a consistent look and feel across the documentation, please adhere t
 ### Driver Thumbnails
 
 *   **Path**: `/public/images/drivers/<Category>/<DriverTitle>.webp`
-    *   Example: `/public/images/drivers/Mounts/EQMod.webp`
+    *   Example: `/public/images/drivers/mounts/eqmod.webp`
 *   **Format**: Must be `.webp`.
 *   **Recommended Size**: 200x200 pixels
 *   **Styling**: Images are styled with `width: 200px; height: 200px; object-fit: contain;`. This means images will be scaled down or up to fit within these dimensions while maintaining their aspect ratio.
@@ -81,7 +83,7 @@ To maintain a consistent look and feel across the documentation, please adhere t
 ### Manufacturer Logos
 
 *   **Path**: `/public/images/manufacturers/<ManufacturerName>.webp`
-    *   Example: `/public/images/manufacturers/Sky Watcher.webp`
+    *   Example: `/public/images/manufacturers/sky-watcher.webp`
 *   **Format**: Must be `.webp`.
 *   **Recommended Size**: 200x200 pixels
 *   **Styling**: Images are styled with `width: 200px; height: 200px; object-fit: contain;`.
