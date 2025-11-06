@@ -5,8 +5,6 @@ description: The ActiveFocuser driver is used to control the focuser on the Mewl
 thumbnail: /images/focusers/activefocuser/activefocuser.webp
 ---
 
-# ActiveFocuser
-
 ## Features
 
 ![Features](/images/focusers/activefocuser/features.webp)

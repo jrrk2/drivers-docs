@@ -5,8 +5,6 @@ description: Altair supports the standard single-frame capture mode in addition 
 thumbnail: /images/cameras/altair-astro/altair.webp
 ---
 
-# Altair Cameras
-
 ## Features
 ![Features](/images/cameras/altair-astro/features.webp)
 
