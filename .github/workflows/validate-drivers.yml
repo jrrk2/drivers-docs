@@ -66,7 +66,6 @@ jobs:
         run: |
           find src/content/docs/drivers -name "*.yaml" | while read -r yaml_file; do
             manufacturer=$(grep "Manufacturer:" "$yaml_file" | awk -F': ' '{print $2}' | tr -d '\r')
-            category=$(grep "Family:" "$yaml_file" | awk -F': ' '{print $2}' | tr -d '\r')
 
             if [ -n "$manufacturer" ]; then
               manufacturer_slug=$(echo "$manufacturer" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--/-/g' | sed 's/^-//' | sed 's/-$//')
@@ -79,16 +78,19 @@ jobs:
               echo "::error file=$yaml_file::Manufacturer name not found in '$yaml_file'."
               exit 1
             fi
+          done
 
+          find src/content/docs/drivers -name "*.md" | while read -r md_file; do
+            category=$(grep "category:" "$md_file" | awk -F': ' '{print $2}' | tr -d '\r')
             if [ -n "$category" ]; then
               category_slug=$(echo "$category" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--/-/g' | sed 's/^-//' | sed 's/-$//')
               category_image="public/images/categories/${category_slug}.webp"
               if [ ! -f "$category_image" ]; then
-                echo "::error file=$yaml_file::Category image for '$category' not found at '$category_image'."
+                echo "::error file=$md_file::Category image for '$category' not found at '$category_image'."
                 exit 1
               fi
             else
-              echo "::error file=$yaml_file::Category name not found in '$yaml_file'."
+              echo "::error file=$md_file::Category name not found in '$md_file'."
               exit 1
             fi
           done
