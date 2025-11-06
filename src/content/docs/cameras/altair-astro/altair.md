@@ -2,13 +2,13 @@
 title: Altair
 category: Camera
 description: Altair supports the standard single-frame capture mode in addition to video streaming when supportted.
-thumbnail: /images/drivers/cameras/altair/altair.webp
+thumbnail: /images/cameras/altair-astro/altair.webp
 ---
 
 # Altair Cameras
 
 ## Features
-![Features](/images/drivers/cameras/altair/features.webp)
+![Features](/images/cameras/altair-astro/features.webp)
 
 The driver supports the standard single-frame capture mode in addition to video streaming when supported. Furthermore, it supports:
 
@@ -37,7 +37,7 @@ Simply connect the camera via USB to your PC or SBC (Single Board Computer). The
 
 ## General Info
 
-![General Information](/images/drivers/cameras/altair/general-info.webp)
+![General Information](/images/cameras/altair-astro/general-info.webp)
 
 This Provides general information about the currently running driver and driver version. It also lets you set the **Observer** and **Object Information** for the FITS Header.
 
@@ -47,7 +47,7 @@ To capture a signle-frame image, simple set the desired exposure time in seconds
 
 ## Options
 
-![Options](/images/drivers/cameras/altair/options.webp)
+![Options](/images/cameras/altair-astro/options.webp)
 
 The **Options** tab contains settings for default file locations, upload behavior, and debugging.  
 The polling period for this driver should usually be kept as-is unless you need to change it for a specific reason.
@@ -72,7 +72,7 @@ The polling period for this driver should usually be kept as-is unless you need 
 
 ## Image Settings
 
-![Image Settings](/images/drivers/cameras/altair/image-settings.webp)
+![Image Settings](/images/cameras/altair-astro/image-settings.webp)
 
 In the Image Settings tab, you can configure the framing and binning of the captured image:
 
@@ -89,7 +89,7 @@ To restore the ROI to the default values, click on the Reset button.
 
 ## Image Info
 
-![Image Information](/images/drivers/cameras/altair/image-info.webp)
+![Image Information](/images/cameras/altair-astro/image-info.webp)
 
 The image info tab contains information on the resolution of the CCD (Maximum Width & Height) in addition to the pixel size in microns. If the camera supports Bayer mask, then the bayer filter and offset can be set here. These are usually set automatically by the driver, but can be adjusted manually if needed.
 
@@ -97,7 +97,7 @@ The image info tab contains information on the resolution of the CCD (Maximum Wi
 
 ## Controls
 
-![Controls](/images/drivers/cameras/altair/controls.webp)
+![Controls](/images/cameras/altair-astro/controls.webp)
 
 The controls tab provides settings to adjust common camera parameters such as gain, gamma, brightness, contrast..etc.
 
@@ -125,12 +125,12 @@ Dual Gain can be disabled by setting **HCG/LCG gain ratio** to 1.0. Dual Gain is
 
 ## Levels
 
-![Levels](/images/drivers/cameras/altair/levels.webp)
+![Levels](/images/cameras/altair-astro/levels.webp)
 
 Control the maximum and minimum ranges for all color channels. The RGB black levels can also be adjusted. By default, all levels are set to the maximum data range (0-255).
 
 ## Firmware
 
-![Firmware](/images/drivers/cameras/altair/firmware.webp)
+![Firmware](/images/cameras/altair-astro/firmware.webp)
 
 Display the camera firmware information.

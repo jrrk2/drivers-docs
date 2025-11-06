@@ -1,0 +1,156 @@
+---
+import { getCollection } from "astro:content";
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import yaml from "js-yaml";
+import { readFileSync, existsSync } from "node:fs";
+import path from "node:path";
+import { slugify } from "../../utils/slugify";
+
+export async function getStaticPaths() {
+  const allDrivers = await getCollection("docs");
+  const pathMap = new Map();
+
+  for (const driver of allDrivers) {
+    const driverId = driver.id; // e.g., mounts/sky-watcher/eqmod
+    const driverParts = driverId.split("/");
+
+    if (driverParts.length >= 3) {
+      const categorySlug = slugify(driverParts[0]);
+      const manufacturerSlug = slugify(driverParts[1]);
+
+      // Get display names from YAML
+      const yamlPath = path.resolve(
+        process.cwd(),
+        `src/content/docs/${driverId.replace(/\.md$/, ".yaml")}`,
+      );
+
+      let categoryName = categorySlug;
+      let manufacturerName = manufacturerSlug;
+
+      if (existsSync(yamlPath)) {
+        try {
+          const fileContents = readFileSync(yamlPath, "utf8");
+          const driverInfo = yaml.load(fileContents) as Record<string, any>;
+          if (driverInfo?.category_name) {
+            categoryName = driverInfo.category_name as string;
+          }
+          if (driverInfo?.manufacturer_name) {
+            manufacturerName = driverInfo.manufacturer_name as string;
+          }
+        } catch (e) {
+          console.error(`Error reading YAML for ${driverId}:`, e);
+        }
+      }
+
+      // Use fallbacks if no YAML data
+      if (!categoryName || categoryName === categorySlug) {
+        categoryName =
+          driver.data.category ||
+          categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1);
+      }
+      if (!manufacturerName || manufacturerName === manufacturerSlug) {
+        manufacturerName = manufacturerSlug
+          .split("-")
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+      }
+
+      const key = `${categorySlug}-${manufacturerSlug}`;
+      pathMap.set(key, {
+        params: { category: categorySlug, manufacturer: manufacturerSlug },
+        props: { categoryName, manufacturerName },
+      });
+    }
+  }
+
+  return Array.from(pathMap.values());
+}
+
+const { category: rawCategory, manufacturer: rawManufacturer } = Astro.params;
+const category = slugify(rawCategory);
+const manufacturer = slugify(rawManufacturer);
+const { categoryName, manufacturerName } = Astro.props;
+
+const allDrivers = await getCollection("docs");
+const driversByManufacturer = allDrivers.filter((driver) => {
+  const driverId = driver.id;
+  const driverParts = driverId.split("/");
+  return (
+    driverParts.length >= 3 &&
+    slugify(driverParts[0]) === category &&
+    slugify(driverParts[1]) === manufacturer
+  );
+});
+---
+
+<StarlightPage
+  frontmatter={{
+    title: `${manufacturerName} Drivers in ${categoryName}`,
+    template: "splash",
+  }}
+>
+  <div class="driver-grid">
+    {
+      driversByManufacturer.map((driver) => {
+        const driverPath = `/${slugify(driver.id.replace(/\.md$/, ""))}`;
+        return (
+          <a href={driverPath} class="driver-box">
+            <img
+              src={
+                driver.data.thumbnail ||
+                `/images/drivers/${slugify(driver.data.category || "uncategorized")}/${slugify(driver.data.title || "")}.webp`
+              }
+              alt={`${driver.data.title} thumbnail`}
+              class="driver-thumbnail"
+            />
+            <h2>{driver.data.title}</h2>
+          </a>
+        );
+      })
+    }
+  </div>
+</StarlightPage>
+
+<style>
+  .driver-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .driver-box {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+    background-color: var(--sl-color-gray-6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--sl-shadow-sm);
+    transition: all 0.2s ease-in-out;
+  }
+
+  .driver-box:hover {
+    background-color: var(--sl-color-gray-5);
+    transform: translateY(-5px);
+    box-shadow: var(--sl-shadow-md);
+  }
+
+  .driver-box h2 {
+    margin-top: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--sl-color-white);
+    font-size: 1.5rem;
+  }
+
+  .driver-thumbnail {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    margin-bottom: 0.5rem;
+  }
+</style>

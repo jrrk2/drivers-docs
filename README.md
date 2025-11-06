@@ -4,126 +4,255 @@ This guide explains how to add new driver documentation, including details on fi
 
 ## 1. Adding New Drivers
 
-Each driver entry consists of two files: a Markdown (`.md`) file for the main content and a YAML (`.yaml`) file for metadata, particularly the manufacturer information.
+Each driver entry consists of two files: a Markdown (`.md`) file for the main content and a YAML (`.yaml`) file for metadata.
 
 ### File Structure
 
-All driver documentation should reside within `src/content/docs/drivers/`.
-All the file names should be smallcase.
-Organize drivers by category:
+All driver documentation resides within `src/content/docs/`, organized by category and manufacturer:
 
 ```
-src/content/docs/drivers/
-├── mounts/
-│   ├── eqmod.md
-│   └── eqmod.yaml
+src/content/docs/
+├── mounts/                      # Category (lowercase slug)
+│   ├── sky-watcher/            # Manufacturer (lowercase slug)
+│   │   ├── eqmod.md           # Driver documentation
+│   │   └── eqmod.yaml         # Driver metadata
+│   └── ikarus-technologies/
+│       ├── stellarmate-pro.md
+│       └── stellarmate-pro.yaml
 ├── cameras/
-│   ├── zwo.md
-│   └── zwo.yaml
+│   └── altair-astro/
+│       ├── altair.md
+│       └── altair.yaml
 └── ...
 ```
 
-*   **Category Directory**: Create a directory for the driver's category (e.g., `Mounts`, `Cameras`).
-*   **Driver Files**: Inside the category directory, create two files for each driver:
-    *   `<DriverName>.md`: Contains the main documentation content.
-    *   `<DriverName>.yaml`: Contains additional metadata, primarily the manufacturer.
+**Directory Naming Convention:**
+- Use **lowercase** with **hyphens** for directory names (e.g., `sky-watcher`, `ikarus-technologies`)
+- Category directories: `mounts`, `cameras`, `focusers`, etc.
+- Manufacturer directories: `sky-watcher`, `zwo`, `qhyccd`, etc.
+- Driver filenames: `eqmod.md`, `altair.md`, etc.
 
-### Markdown (`.md`) File Example
+### YAML Metadata File
 
-The Markdown file should include frontmatter with `title`, `category`, `description` and `thumbnail` (optional).
+The YAML file contains driver metadata with both human-friendly display names and additional information:
+
+```yaml
+# Display Names (Human-Friendly - Required)
+driver_name: EQMod Mount
+category_name: Mounts
+manufacturer_name: Sky Watcher
+
+# Additional Metadata (Optional)
+website: www.indlib.org
+executable: indi_eqmod_telescope
+family: Telescopes
+platforms: Linux, BSD, OSX
+author: Jean-Luc Levaire
+version: 1.0
+```
+
+**Key Fields:**
+- `driver_name`: Human-friendly driver name (displayed on the website)
+- `category_name`: Human-friendly category name (e.g., "Mounts", "Cameras")
+- `manufacturer_name`: Human-friendly manufacturer name (e.g., "Sky Watcher", "Ikarus Technologies")
+- Additional fields: You can add any custom metadata that will be displayed in the driver information sidebar
+
+**Important:** The human-friendly names in the YAML file are what users will see on the website, while the directory structure uses SEO-friendly slugs for URLs.
+
+### Markdown Documentation File
+
+The Markdown file contains the main driver documentation:
 
 ```markdown
 ---
-title: EQMod
+title: EQMod Mount
 category: Mounts
-description: The EQMod description.
-thumbnail: /images/drivers/Mounts/EQMod.png
+description: The EQMod driver for Sky Watcher mounts.
+thumbnail: /images/drivers/mounts/eqmod/eqmod.webp
 ---
 
 # EQMod Driver
 
-This is the documentation for the EQMod driver. It provides details on installation, configuration, and usage.
+This is the documentation for the EQMod driver...
+
+## Features
+
+* Feature 1
+* Feature 2
 
 ## Installation
 
-Follow these steps to install EQMod...
-
-## Usage
-
-Here's how to use the EQMod driver with your mount...
+Installation instructions...
 ```
 
-*   **`title`**: The name of the driver.
-*   **`category`**: The category this driver belongs to (e.g., `mounts`, `cameras`). This should match the directory name.
-*   **`thumbnail`**: (Optional) The path to the driver's thumbnail image. If not provided, a default path will be used.
-
-### YAML (`.yaml`) File Example
-
-The YAML file should contain the `manufacturer` field. This is crucial for organizing drivers by manufacturer.
-
-```yaml
-manufacturer: Sky Watcher
-```
-
-*   **`manufacturer`**: The name of the manufacturer for this driver. This will be used to group drivers on manufacturer-specific pages.
-*   The **`manufacturer`** name should has a logo at `/public/images/manufacturers/`
+**Frontmatter Fields:**
+- `title`: The driver name (should match `driver_name` in YAML)
+- `category`: Category name (should match `category_name` in YAML)
+- `description`: Brief description for SEO and previews
+- `thumbnail`: (Optional) Path to the driver's main image
 
 ## 2. Image Guidelines
 
-To maintain a consistent look and feel across the documentation, please adhere to the following image guidelines. Custom CSS is applied to ensure all images are scaled correctly.
+To maintain a consistent look and feel across the documentation, please adhere to the following image guidelines.
 
-### Driver Thumbnails
+### Driver Images
 
-*   **Path**: `/public/images/drivers/<Category>/<DriverTitle>.webp`
-    *   Example: `/public/images/drivers/mounts/eqmod.webp`
-*   **Format**: Must be `.webp`.
-*   **Recommended Size**: 200x200 pixels
-*   **Styling**: Images are styled with `width: 200px; height: 200px; object-fit: contain;`. This means images will be scaled down or up to fit within these dimensions while maintaining their aspect ratio.
+**Path Structure:**
+```
+/public/images/drivers/<category-slug>/<manufacturer-slug>/<driver-slug>/<image-name>.webp
+```
+
+**Example:**
+```
+/public/images/drivers/mounts/eqmod/eqmod.webp
+/public/images/drivers/cameras/altair-astro/altair.webp
+```
+
+**Requirements:**
+- **Format**: Must be `.webp`
+- **Recommended Size**: 200x200 pixels for thumbnails
+- **Styling**: Images are automatically styled to fit within 200x200px while maintaining aspect ratio
 
 ### Manufacturer Logos
 
-*   **Path**: `/public/images/manufacturers/<ManufacturerName>.webp`
-    *   Example: `/public/images/manufacturers/sky-watcher.webp`
-*   **Format**: Must be `.webp`.
-*   **Recommended Size**: 200x200 pixels
-*   **Styling**: Images are styled with `width: 200px; height: 200px; object-fit: contain;`.
+**Path:**
+```
+/public/images/manufacturers/<manufacturer-slug>.webp
+```
 
-## 3. Markdown Features
+**Examples:**
+```
+/public/images/manufacturers/sky-watcher.webp
+/public/images/manufacturers/ikarus-technologies.webp
+/public/images/manufacturers/altair-astro.webp
+```
 
-This project supports GitHub-flavored Markdown, including special callout blocks for highlighting important information. These callouts are rendered with custom styling to draw attention to specific content.
+**Requirements:**
+- **Format**: Must be `.webp`
+- **Recommended Size**: 200x200 pixels
+- **Styling**: Logos are automatically styled to fit within 200x200px
+
+### Category Icons
+
+**Path:**
+```
+/public/images/categories/<category-slug>.webp
+```
+
+**Examples:**
+```
+/public/images/categories/mounts.webp
+/public/images/categories/cameras.webp
+```
+
+## 3. URL Structure
+
+The site automatically generates clean, SEO-friendly URLs based on the directory structure:
+
+**Directory Structure:**
+```
+src/content/docs/mounts/sky-watcher/eqmod.md
+```
+
+**Generated URL:**
+```
+https://drivers.indilib.org/mounts/sky-watcher/eqmod
+```
+
+**Display Names:**
+The website will show "Mounts" > "Sky Watcher" > "EQMod Mount" using the human-friendly names from your YAML file, while the URL remains clean and SEO-friendly.
+
+## 4. Markdown Features
+
+This project supports GitHub-flavored Markdown, including special callout blocks for highlighting important information.
 
 ### Callout Blocks
 
 You can use various types of callout blocks to emphasize different kinds of information:
 
-*   **Note**: For general information or tips.
-    ```markdown
-    > [!NOTE]
-    > This is a note.
-    ```
-*   **Tip**: For helpful advice.
-    ```markdown
-    > [!TIP]
-    > This is a tip.
-    ```
-*   **Important**: For crucial information.
-    ```markdown
-    > [!IMPORTANT]
-    > This is important information.
-    ```
-*   **Warning**: For potential issues or cautions.
-    ```markdown
-    > [!WARNING]
-    > This is a warning.
-    ```
-*   **Caution**: For serious warnings or critical information.
-    ```markdown
-    > [!CAUTION]
-    > This is a caution.
-    ```
+```markdown
+> [!NOTE]
+> This is a note with general information.
 
-These callouts help improve the readability and clarity of the documentation by visually separating important sections.
+> [!TIP]
+> This is a helpful tip.
+
+> [!IMPORTANT]
+> This is important information.
+
+> [!WARNING]
+> This is a warning about potential issues.
+
+> [!CAUTION]
+> This is a critical caution or serious warning.
+```
+
+These callouts are rendered with custom styling to draw attention to specific content.
+
+## 5. Step-by-Step Contribution Process
+
+### Adding a New Driver
+
+1. **Create the directory structure:**
+   ```bash
+   mkdir -p src/content/docs/<category-slug>/<manufacturer-slug>
+   ```
+   Example:
+   ```bash
+   mkdir -p src/content/docs/mounts/sky-watcher
+   ```
+
+2. **Create the YAML metadata file:**
+   ```bash
+   touch src/content/docs/mounts/sky-watcher/eqmod.yaml
+   ```
+   Add your metadata with human-friendly names:
+   ```yaml
+   driver_name: EQMod Mount
+   category_name: Mounts
+   manufacturer_name: Sky Watcher
+   website: www.indlib.org
+   # ... other fields
+   ```
+
+3. **Create the Markdown documentation file:**
+   ```bash
+   touch src/content/docs/mounts/sky-watcher/eqmod.md
+   ```
+   Add your documentation with frontmatter:
+   ```markdown
+   ---
+   title: EQMod Mount
+   category: Mounts
+   description: Driver description here
+   thumbnail: /images/drivers/mounts/eqmod/eqmod.webp
+   ---
+   
+   Your documentation content...
+   ```
+
+4. **Add images:**
+   - Driver images: `public/images/drivers/mounts/sky-watcher/`
+   - Manufacturer logo: `public/images/manufacturers/sky-watcher.webp`
+
+5. **Test locally:**
+   ```bash
+   npm run dev
+   ```
+   Visit `http://localhost:4321/mounts/sky-watcher/eqmod`
+
+6. **Submit a pull request** with your changes.
+
+## 6. Important Notes
+
+- **Consistency**: Always use lowercase with hyphens for directory and file names
+- **Human-Friendly Names**: Use proper capitalization and spacing in YAML metadata
+- **Images**: Convert images to `.webp` format for optimal performance
+- **Documentation**: Write clear, comprehensive documentation with examples
+- **Testing**: Always test your contribution locally before submitting
 
 ## Contribution
 
-We welcome contributions from the community! If you have new driver documentation to add, or improvements to existing ones, please follow this guide. Your contributions help make this resource more valuable for everyone.
+We welcome contributions from the community! If you have new driver documentation to add or improvements to existing ones, please follow this guide. Your contributions help make this resource more valuable for everyone.
+
+For questions or issues, please open an issue on the GitHub repository.

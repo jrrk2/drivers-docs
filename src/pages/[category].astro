@@ -1,0 +1,175 @@
+---
+import { getCollection } from "astro:content";
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import yaml from "js-yaml";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
+import path from "node:path";
+import { slugify } from "../utils/slugify";
+
+export async function getStaticPaths() {
+  const allDrivers = await getCollection("docs");
+  const categoryMap = new Map();
+
+  // Extract unique categories with their display names
+  for (const driver of allDrivers) {
+    const driverId = driver.id; // e.g., mounts/sky-watcher/eqmod
+    const driverParts = driverId.split("/");
+
+    if (driverParts.length >= 3) {
+      const categorySlug = slugify(driverParts[0]);
+
+      // Get category display name from YAML
+      const yamlPath = path.resolve(
+        process.cwd(),
+        `src/content/docs/${driverId.replace(/\.md$/, ".yaml")}`,
+      );
+      if (existsSync(yamlPath)) {
+        try {
+          const fileContents = readFileSync(yamlPath, "utf8");
+          const driverInfo = yaml.load(fileContents) as Record<string, any>;
+          if (driverInfo?.category_name) {
+            categoryMap.set(categorySlug, driverInfo.category_name as string);
+          }
+        } catch (e) {
+          console.error(`Error reading YAML for ${driverId}:`, e);
+        }
+      }
+
+      // Fallback to driver.data.category or capitalize slug
+      if (!categoryMap.has(categorySlug)) {
+        const displayName =
+          driver.data.category ||
+          categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1);
+        categoryMap.set(categorySlug, displayName);
+      }
+    }
+  }
+
+  return Array.from(categoryMap.entries()).map(([slug, name]) => ({
+    params: { category: slug },
+    props: { categoryName: name },
+  }));
+}
+
+const { category: rawCategory } = Astro.params;
+const category = slugify(rawCategory);
+const { categoryName } = Astro.props;
+
+const allDrivers = await getCollection("docs");
+const driversInCategory = allDrivers.filter((driver) => {
+  const driverId = driver.id;
+  const driverParts = driverId.split("/");
+  return driverParts.length >= 3 && slugify(driverParts[0]) === category;
+});
+
+const manufacturerMap = new Map(); // Map<slug, displayName>
+
+for (const driver of driversInCategory) {
+  const driverId = driver.id; // e.g., mounts/sky-watcher/eqmod
+  const driverParts = driverId.split("/");
+
+  if (driverParts.length >= 3) {
+    const manufacturerSlug = slugify(driverParts[1]);
+
+    // Get manufacturer display name from YAML
+    const yamlPath = path.resolve(
+      process.cwd(),
+      `src/content/docs/${driverId.replace(/\.md$/, ".yaml")}`,
+    );
+    if (existsSync(yamlPath)) {
+      try {
+        const fileContents = readFileSync(yamlPath, "utf8");
+        const driverInfo = yaml.load(fileContents) as Record<string, any>;
+        if (driverInfo?.manufacturer_name) {
+          manufacturerMap.set(
+            manufacturerSlug,
+            driverInfo.manufacturer_name as string,
+          );
+        }
+      } catch (e) {
+        console.error(`Error reading YAML for ${driverId}:`, e);
+      }
+    }
+
+    // Fallback to capitalizing slug if no display name found
+    if (!manufacturerMap.has(manufacturerSlug)) {
+      const displayName = manufacturerSlug
+        .split("-")
+        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+      manufacturerMap.set(manufacturerSlug, displayName);
+    }
+  }
+}
+
+const manufacturers = Array.from(manufacturerMap.entries());
+---
+
+<StarlightPage
+  frontmatter={{
+    title: `${categoryName} Manufacturers`,
+    template: "splash",
+  }}
+>
+  <div class="manufacturer-grid">
+    {
+      manufacturers.map(([slug, name]) => {
+        const manufacturerLink = `/${category}/${slug}`;
+        return (
+          <a href={manufacturerLink} class="manufacturer-box">
+            <img
+              src={`/images/manufacturers/${slug}.webp`}
+              alt={`${name} logo`}
+              class="manufacturer-logo"
+            />
+            <h2>{name}</h2>
+          </a>
+        );
+      })
+    }
+  </div>
+</StarlightPage>
+
+<style>
+  .manufacturer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .manufacturer-box {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+    background-color: var(--sl-color-gray-6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--sl-shadow-sm);
+    transition: all 0.2s ease-in-out;
+  }
+
+  .manufacturer-box:hover {
+    background-color: var(--sl-color-gray-5);
+    transform: translateY(-5px);
+    box-shadow: var(--sl-shadow-md);
+  }
+
+  .manufacturer-box h2 {
+    margin-top: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--sl-color-white);
+    font-size: 1.5rem;
+  }
+
+  .manufacturer-logo {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    margin-bottom: 1rem;
+  }
+</style>

@@ -1,0 +1,376 @@
+---
+import { getCollection } from "astro:content";
+import yaml from "js-yaml";
+import { readFileSync, existsSync } from "node:fs";
+import path from "node:path";
+import { slugify } from "../utils/slugify";
+
+const currentPath = Astro.url.pathname;
+
+// Build the navigation tree
+const allDrivers = await getCollection("docs");
+
+interface Driver {
+    slug: string;
+    name: string;
+    path: string;
+}
+
+interface Manufacturer {
+    slug: string;
+    name: string;
+    drivers: Driver[];
+}
+
+interface Category {
+    slug: string;
+    name: string;
+    manufacturers: Manufacturer[];
+}
+
+const categoryMap = new Map<string, Category>();
+
+for (const driver of allDrivers) {
+    const driverId = driver.id;
+    const driverParts = driverId.split("/");
+
+    if (driverParts.length >= 3) {
+        const categorySlug = slugify(driverParts[0]);
+        const manufacturerSlug = slugify(driverParts[1]);
+        const driverSlug = slugify(driverParts[2].replace(/\.md$/, ""));
+
+        // Get display names from YAML
+        const yamlPath = path.resolve(
+            process.cwd(),
+            `src/content/docs/${driverId.replace(/\.md$/, ".yaml")}`,
+        );
+
+        let categoryName = categorySlug;
+        let manufacturerName = manufacturerSlug;
+        let driverName = driver.data.title || driverSlug;
+
+        if (existsSync(yamlPath)) {
+            try {
+                const fileContents = readFileSync(yamlPath, "utf8");
+                const driverInfo = yaml.load(fileContents) as Record<
+                    string,
+                    any
+                >;
+                if (driverInfo?.category_name) {
+                    categoryName = driverInfo.category_name as string;
+                }
+                if (driverInfo?.manufacturer_name) {
+                    manufacturerName = driverInfo.manufacturer_name as string;
+                }
+                if (driverInfo?.driver_name) {
+                    driverName = driverInfo.driver_name as string;
+                }
+            } catch (e) {
+                console.error(`Error reading YAML for ${driverId}:`, e);
+            }
+        }
+
+        // Fallbacks
+        if (!categoryName || categoryName === categorySlug) {
+            categoryName =
+                driver.data.category ||
+                categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1);
+        }
+        if (!manufacturerName || manufacturerName === manufacturerSlug) {
+            manufacturerName = manufacturerSlug
+                .split("-")
+                .map(
+                    (word: string) =>
+                        word.charAt(0).toUpperCase() + word.slice(1),
+                )
+                .join(" ");
+        }
+
+        // Build the tree
+        if (!categoryMap.has(categorySlug)) {
+            categoryMap.set(categorySlug, {
+                slug: categorySlug,
+                name: categoryName,
+                manufacturers: [],
+            });
+        }
+
+        const category = categoryMap.get(categorySlug)!;
+        let manufacturer = category.manufacturers.find(
+            (m) => m.slug === manufacturerSlug,
+        );
+
+        if (!manufacturer) {
+            manufacturer = {
+                slug: manufacturerSlug,
+                name: manufacturerName,
+                drivers: [],
+            };
+            category.manufacturers.push(manufacturer);
+        }
+
+        manufacturer.drivers.push({
+            slug: driverSlug,
+            name: driverName,
+            path: `/${categorySlug}/${manufacturerSlug}/${driverSlug}`,
+        });
+    }
+}
+
+const categories = Array.from(categoryMap.values()).sort((a, b) =>
+    a.name.localeCompare(b.name),
+);
+
+// Sort manufacturers and drivers
+categories.forEach((category) => {
+    category.manufacturers.sort((a, b) => a.name.localeCompare(b.name));
+    category.manufacturers.forEach((manufacturer) => {
+        manufacturer.drivers.sort((a, b) => a.name.localeCompare(b.name));
+    });
+});
+---
+
+<nav class="sidebar-nav" id="sidebar-nav">
+    <ul class="category-list">
+        {
+            categories.map((category) => (
+                <li class="category-item">
+                    <details>
+                        <summary class="category-summary">
+                            <span class="category-label">{category.name}</span>
+                        </summary>
+                        <ul class="manufacturer-list">
+                            {category.manufacturers.map((manufacturer) => (
+                                <li class="manufacturer-item">
+                                    <details>
+                                        <summary class="manufacturer-summary">
+                                            <span class="manufacturer-label">
+                                                {manufacturer.name}
+                                            </span>
+                                        </summary>
+                                        <ul class="driver-list">
+                                            {manufacturer.drivers.map(
+                                                (driver) => (
+                                                    <li class="driver-item">
+                                                        <a
+                                                            href={driver.path}
+                                                            class:list={[
+                                                                "driver-link",
+                                                                {
+                                                                    active:
+                                                                        currentPath ===
+                                                                            driver.path ||
+                                                                        currentPath ===
+                                                                            `${driver.path}/`,
+                                                                },
+                                                            ]}
+                                                        >
+                                                            {driver.name}
+                                                        </a>
+                                                    </li>
+                                                ),
+                                            )}
+                                        </ul>
+                                    </details>
+                                </li>
+                            ))}
+                        </ul>
+                    </details>
+                </li>
+            ))
+        }
+    </ul>
+</nav>
+
+<style>
+    .sidebar-nav {
+        height: 100%;
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    details {
+        margin: 0;
+    }
+
+    summary {
+        cursor: pointer;
+        user-select: none;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    summary::after {
+        content: "▼";
+        font-size: 0.7rem;
+        transition: transform 0.2s;
+        color: var(--sl-color-gray-2);
+        margin-left: auto;
+        padding-right: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    details[open] > summary::after {
+        transform: rotate(-180deg);
+    }
+
+    .category-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .category-item {
+        margin: 0;
+    }
+
+    .category-label {
+        color: var(--sl-color-white);
+        display: block;
+        padding: 0.5rem 0.75rem;
+        font-weight: 600;
+    }
+
+    .manufacturer-list {
+        margin-left: 1rem;
+        margin-top: 0.25rem;
+    }
+
+    .manufacturer-item {
+        margin-bottom: 0.25rem;
+    }
+
+    .manufacturer-label {
+        color: var(--sl-color-gray-2);
+        padding: 0.375rem 0.75rem;
+        font-weight: 500;
+    }
+
+    .driver-list {
+        margin-left: 1rem;
+        margin-top: 0.25rem;
+    }
+
+    .driver-item {
+        margin-bottom: 0.125rem;
+    }
+
+    .driver-link {
+        color: var(--sl-color-gray-3);
+        text-decoration: none;
+        display: block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+
+    .driver-link:hover {
+        background-color: var(--sl-color-gray-6);
+        color: var(--sl-color-white);
+    }
+
+    .driver-link.active {
+        background-color: var(--sl-color-gray-5);
+        color: var(--sl-color-text-accent);
+        font-weight: 500;
+    }
+</style>
+
+<script>
+    // Auto-expand based on current path for each navigation
+    function expandSidebar() {
+        const sidebar = document.getElementById("sidebar-nav");
+        if (!sidebar) return;
+
+        const currentPath = window.location.pathname;
+        console.log("Current path:", currentPath);
+
+        const details = sidebar.querySelectorAll("details");
+
+        // First close all details
+        details.forEach((detail) => {
+            (detail as HTMLDetailsElement).open = false;
+        });
+
+        // Then auto-expand based on current path only
+        const pathParts = currentPath.split("/").filter(Boolean);
+        console.log("Path parts:", pathParts);
+
+        if (pathParts.length > 0) {
+            // Find and open the category by checking links
+            const categoryItems = sidebar.querySelectorAll(".category-item");
+
+            for (const item of categoryItems) {
+                const links = item.querySelectorAll("a.driver-link");
+                const hasMatchingLink = Array.from(links).some((link) => {
+                    const href = link.getAttribute("href");
+                    return (
+                        href &&
+                        (href === currentPath ||
+                            href === currentPath.replace(/\/$/, ""))
+                    );
+                });
+
+                if (hasMatchingLink) {
+                    const categoryDetails = item.querySelector("details");
+                    if (categoryDetails) {
+                        (categoryDetails as HTMLDetailsElement).open = true;
+
+                        // Find and open the manufacturer
+                        const manufacturerItems =
+                            item.querySelectorAll(".manufacturer-item");
+                        for (const mfgItem of manufacturerItems) {
+                            const mfgLinks =
+                                mfgItem.querySelectorAll("a.driver-link");
+                            const hasMatchingMfgLink = Array.from(
+                                mfgLinks,
+                            ).some((link) => {
+                                const href = link.getAttribute("href");
+                                return (
+                                    href &&
+                                    (href === currentPath ||
+                                        href === currentPath.replace(/\/$/, ""))
+                                );
+                            });
+
+                            if (hasMatchingMfgLink) {
+                                const mfgDetails =
+                                    mfgItem.querySelector("details");
+                                if (mfgDetails) {
+                                    (mfgDetails as HTMLDetailsElement).open =
+                                        true;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    // Run on page load
+    document.addEventListener("astro:page-load", expandSidebar);
+
+    // Also run immediately in case page is already loaded
+    if (
+        document.readyState === "complete" ||
+        document.readyState === "interactive"
+    ) {
+        setTimeout(expandSidebar, 0);
+    }
+</script>

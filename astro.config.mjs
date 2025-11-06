@@ -17,13 +17,8 @@ export default defineConfig({
           href: 'https://github.com/indilib/indi',
         },
       ],
-      sidebar: [
-        {
-          label: 'Drivers Documentation',
-          autogenerate: { directory: 'drivers' },
-        },
-      ],
       components: {
+        Sidebar: './src/components/Sidebar.astro',
         PageSidebar: './src/components/StarlightRightSidebar.astro',
       },
       customCss: ['./src/styles/alerts.css'],
