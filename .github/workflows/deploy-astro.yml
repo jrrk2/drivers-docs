@@ -15,10 +15,23 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install dependencies
         run: npm install
+
+      - name: Copy driver thumbnails to public directory
+        run: |
+          mkdir -p public/images/drivers
+          find src/content/docs -type f -name "*.webp" ! -path "*/images/*" | while read file; do
+            # Extract manufacturer and driver from path
+            # Path format: src/content/docs/category/manufacturer/driver/driver.webp
+            manufacturer=$(echo "$file" | cut -d'/' -f5)
+            driver=$(basename "$file" .webp)
+            mkdir -p "public/images/drivers/$manufacturer"
+            cp "$file" "public/images/drivers/$manufacturer/$driver.webp"
+            echo "Copied: $file -> public/images/drivers/$manufacturer/$driver.webp"
+          done
 
       - name: Build Astro project
         run: npm run build

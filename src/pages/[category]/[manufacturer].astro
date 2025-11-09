@@ -93,13 +93,12 @@ const driversByManufacturer = allDrivers.filter((driver) => {
       driversByManufacturer.map((driver) => {
         const driverPath = `/${slugify(driver.id.replace(/\.md$/, ""))}`;
 
-        // Construct path to co-located thumbnail
+        // Construct path to thumbnail in public directory
         // driver.id is like "rotators/moon-lite/night-crawler-rotator-and-focuser/night-crawler-rotator-and-focuser.md"
         const driverParts = driver.id.split("/");
-        const actualCategorySlug = driverParts[0]; // Get actual file location category
         const manufacturerSlug = driverParts[1]; // Get "moon-lite"
         const driverSlug = driverParts[2]; // Get "night-crawler-rotator-and-focuser"
-        const thumbnailPath = `/src/content/docs/${actualCategorySlug}/${manufacturerSlug}/${driverSlug}/${driverSlug}.webp`;
+        const thumbnailPath = `/images/drivers/${manufacturerSlug}/${driverSlug}.webp`;
 
         return (
           <a href={driverPath} class="driver-box">

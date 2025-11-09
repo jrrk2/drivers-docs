@@ -2,6 +2,8 @@
 dist/
 # generated types
 .astro/
+# public driver images
+public/images/drivers/*
 
 # dependencies
 node_modules/

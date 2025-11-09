@@ -1,0 +1,27 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Copy Thumbnails to Public",
+      "type": "shell",
+      "command": "mkdir -p public/images/drivers && find src/content/docs -type f -name '*.webp' ! -path '*/images/*' | while read file; do manufacturer=$(echo \"$file\" | cut -d'/' -f5); driver=$(basename \"$file\" .webp); mkdir -p \"public/images/drivers/$manufacturer\"; cp \"$file\" \"public/images/drivers/$manufacturer/$driver.webp\"; echo \"Copied: $file -> public/images/drivers/$manufacturer/$driver.webp\"; done",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Build (with thumbnails)",
+      "dependsOn": ["Copy Thumbnails to Public"],
+      "dependsOrder": "sequence",
+      "type": "shell",
+      "command": "npm run build",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}
